@@ -39,6 +39,7 @@ dependencies {
 
     implementation libs.embulk.util.config
     implementation libs.validation
+    implementation platform(libs.jackson.bom)
     implementation libs.bundles.jackson
 
     testImplementation libs.junit4
@@ -70,6 +71,19 @@ sourcesJar {
 javadocJar {
     metaInf {
         from rootProject.file("LICENSE")
+    }
+}
+
+// A safer and strict alternative to: "dependencies" (and "dependencies --write-locks")
+//
+// This task fails explicitly when the specified dependency is not available.
+// In contrast, "dependencies (--write-locks)" does not fail even when a part the dependencies are unavailable.
+//
+// https://docs.gradle.org/8.7/userguide/dependency_locking.html#generating_and_updating_dependency_locks
+task checkDependencies {
+    notCompatibleWithConfigurationCache("The task \"checkDependencies\" filters configurations at execution time.")
+    doLast {
+        configurations.findAll { it.canBeResolved }.each { it.resolve() }
     }
 }
 
